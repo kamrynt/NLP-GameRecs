@@ -1,9 +1,9 @@
-import GameCard from './GameCard';
 import React, { useState } from 'react';
 import {
-  Paper, TextField, IconButton, List, ListItem, ListItemText, CircularProgress, Box
+  Paper, TextField, IconButton, List, ListItem, ListItemText, CircularProgress, Box, Typography
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import GameCard from './GameCard';
 
 const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
@@ -12,59 +12,44 @@ const ChatWindow = () => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-  
+
     const newMessages = [...messages, { from: 'user', text: input }];
     setMessages(newMessages);
     setInput('');
     setLoading(true);
-  
+
     try {
       const res = await fetch('http://127.0.0.1:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
       });
-  
+
       const data = await res.json();
-  
       setMessages([...newMessages, { from: 'bot', text: data }]);
     } catch (err) {
       setMessages([...newMessages, { from: 'bot', text: '⚠️ Could not connect to backend.' }]);
     }
-  
+
     setLoading(false);
   };
-  
 
   return (
-    <Paper
-      elevation={5}
-      sx={{
-        p: 2,
-        height: '400px',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: '#202020',
-        borderRadius: 2,
-      }}
-    >
+    <Paper elevation={5} sx={{ p: 2, minHeight: '500px', display: 'flex', flexDirection: 'column', bgcolor: '#202020', borderRadius: 2 }}>
       <List sx={{ flexGrow: 1, overflowY: 'auto' }}>
         {messages.map((msg, i) => (
-          <ListItem
-            key={i}
-            sx={{
-              justifyContent: msg.from === 'user' ? 'flex-end' : 'flex-start',
-            }}
-          >
-            <ListItemText
-              primary={
-              Array.isArray(msg.text) ? (
-             msg.text.map((game, i) => <GameCard key={i} game={game} />)
+          <ListItem key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: msg.from === 'user' ? 'flex-end' : 'flex-start' }}>
+            {msg.from === 'user' ? (
+              <Box sx={{ bgcolor: '#00ffcc22', px: 2, py: 1, borderRadius: 2, mb: 1, maxWidth: '80%' }}>
+                <Typography variant="body2">{msg.text}</Typography>
+              </Box>
+            ) : Array.isArray(msg.text) ? (
+              msg.text.map((game, j) => <GameCard key={j} game={game} />)
             ) : (
-             msg.text
-           )
-           }
-            />
+              <Typography variant="body2" sx={{ bgcolor: '#444', px: 2, py: 1, borderRadius: 2, maxWidth: '80%' }}>
+                {msg.text}
+              </Typography>
+            )}
           </ListItem>
         ))}
         {loading && (
@@ -73,7 +58,6 @@ const ChatWindow = () => {
           </ListItem>
         )}
       </List>
-
       <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
         <TextField
           fullWidth
