@@ -9,14 +9,8 @@ CORS(app)  # Allow requests from frontend
 def chat():
     data = request.json
     message = data.get("message", "")
-    if not message:
-        return jsonify({"reply": "Please enter a valid message."}), 400
-    
     recommendations = recommend_games(message)
-    reply = "Here are some games you might like:\n" + "\n".join(
-        [f"🎮 {game['Title']}: {game['Summary'][:120]}..." for game in recommendations]
-    )
-    return jsonify({"reply": reply})
+    return jsonify(recommendations)
 
 if __name__ == "__main__":
     app.run(debug=True)

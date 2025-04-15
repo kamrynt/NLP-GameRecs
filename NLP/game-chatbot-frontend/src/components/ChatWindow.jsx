@@ -1,3 +1,4 @@
+import GameCard from './GameCard';
 import React, { useState } from 'react';
 import {
   Paper, TextField, IconButton, List, ListItem, ListItemText, CircularProgress, Box
@@ -11,26 +12,29 @@ const ChatWindow = () => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
+  
     const newMessages = [...messages, { from: 'user', text: input }];
     setMessages(newMessages);
     setInput('');
     setLoading(true);
-
+  
     try {
       const res = await fetch('http://127.0.0.1:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
       });
+  
       const data = await res.json();
-      setMessages([...newMessages, { from: 'bot', text: data.reply }]);
+  
+      setMessages([...newMessages, { from: 'bot', text: data }]);
     } catch (err) {
       setMessages([...newMessages, { from: 'bot', text: '⚠️ Could not connect to backend.' }]);
     }
-
+  
     setLoading(false);
   };
+  
 
   return (
     <Paper
@@ -53,14 +57,13 @@ const ChatWindow = () => {
             }}
           >
             <ListItemText
-              primary={msg.text}
-              sx={{
-                bgcolor: msg.from === 'user' ? '#00ffcc22' : '#444',
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                maxWidth: '80%',
-              }}
+              primary={
+              Array.isArray(msg.text) ? (
+             msg.text.map((game, i) => <GameCard key={i} game={game} />)
+            ) : (
+             msg.text
+           )
+           }
             />
           </ListItem>
         ))}
