@@ -1,23 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db, User
-from auth import auth_blueprint
-from chatbot import chatbot_blueprint
-from recommendation import recommendation_blueprint
-import config
+from chatbot.recommender import recommend_games
 
 app = Flask(__name__)
-app.config.from_object(config.Config)
-db.init_app(app)
-CORS(app)
+CORS(app)  # Allow requests from frontend
 
-app.register_blueprint(auth_blueprint, url_prefix='/api/auth')
-app.register_blueprint(chatbot_blueprint, url_prefix='/api/chat')
-app.register_blueprint(recommendation_blueprint, url_prefix='/api/recommendations')
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.json
+    message = data.get("message", "")
+    if not message:
+        return jsonify({"reply": "Please enter a valid message."}), 400
+    
+    recommendations = recommend_games(message)
+    reply = "Here are some games you might like:\n" + "\n".join(
+        [f"🎮 {game['Title']}: {game['Summary'][:120]}..." for game in recommendations]
+    )
+    return jsonify({"reply": reply})
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
